@@ -16,8 +16,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 import com.egs.atmservice.config.cardsession.ValidatedCard;
 import com.egs.atmservice.controller.model.IdentifyCardResponse;
 import com.egs.atmservice.exception.ATMException;
-import com.egs.atmservice.integration.CardAuthRequest;
-import com.egs.atmservice.integration.CardAuthResponse;
+import com.egs.atmservice.integration.auth.CardAuthRequest;
+import com.egs.atmservice.integration.auth.CardAuthResponse;
 import com.egs.atmservice.integration.GetCardResponse;
 
 @Service

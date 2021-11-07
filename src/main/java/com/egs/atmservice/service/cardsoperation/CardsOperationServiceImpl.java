@@ -15,8 +15,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.egs.atmservice.config.cardsession.ValidatedCard;
 import com.egs.atmservice.exception.ATMException;
-import com.egs.atmservice.integration.DepositRequest;
-import com.egs.atmservice.integration.WithdrawalRequest;
+import com.egs.atmservice.integration.operation.DepositRequest;
+import com.egs.atmservice.integration.operation.WithdrawalRequest;
 
 @Service
 public class CardsOperationServiceImpl implements CardsOperationService {

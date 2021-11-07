@@ -1,4 +1,4 @@
-package com.egs.atmservice.integration;
+package com.egs.atmservice.integration.auth;
 
 import java.util.ArrayList;
 import java.util.List;

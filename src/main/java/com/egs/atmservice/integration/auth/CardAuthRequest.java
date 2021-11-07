@@ -1,4 +1,4 @@
-package com.egs.atmservice.integration;
+package com.egs.atmservice.integration.auth;
 
 import lombok.Getter;
 import lombok.Setter;
