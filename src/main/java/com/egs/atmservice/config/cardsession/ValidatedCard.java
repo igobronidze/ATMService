@@ -1,5 +1,6 @@
 package com.egs.atmservice.config.cardsession;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import lombok.Getter;
@@ -14,4 +15,6 @@ public class ValidatedCard {
     private long amount;
 
     private List<String> allowedActions;
+
+    private List<String> cookies = new ArrayList<>();
 }

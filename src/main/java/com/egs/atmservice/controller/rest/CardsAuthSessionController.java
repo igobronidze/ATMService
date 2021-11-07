@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.egs.atmservice.controller.model.IdentifyCardResponse;
-import com.egs.atmservice.service.CardsAuthSessionService;
-import com.egs.atmservice.service.CardsAuthSessionServiceImpl;
+import com.egs.atmservice.service.cardsauth.CardsAuthSessionService;
+import com.egs.atmservice.service.cardsauth.CardsAuthSessionServiceImpl;
 
 @RestController
 @RequestMapping("api/cards/auth")

@@ -1,8 +1,14 @@
-package com.egs.atmservice.service;
+package com.egs.atmservice.service.cardsauth;
 
+import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -16,6 +22,8 @@ import com.egs.atmservice.integration.GetCardResponse;
 
 @Service
 public class CardsAuthSessionServiceImpl implements CardsAuthSessionService {
+
+    private static final Logger logger = LoggerFactory.getLogger(CardsAuthSessionServiceImpl.class);
 
     @Value("${get.card.by.number.service.url}")
     private String getCardByNumberServiceUrl;
@@ -57,13 +65,18 @@ public class CardsAuthSessionServiceImpl implements CardsAuthSessionService {
         validatedCard.setCardNumber(null);
         validatedCard.setAmount(0);
 
-        restTemplate.postForObject(closeSessionService, null, Void.class);
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Cookie", validatedCard.getCookies().stream().collect(Collectors.joining(";")));
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        restTemplate.postForObject(closeSessionService, entity, Void.class);
     }
 
     @Override
     public String cardAuthorization(String code) {
         if (validatedCard.getCardNumber() == null) {
-            throw new ATMException("Card is not validated");
+            logger.warn("Card is not identified");
+            throw new ATMException("Card is not identified");
         }
 
         CardAuthRequest cardAuthRequest = new CardAuthRequest();
@@ -71,10 +84,14 @@ public class CardsAuthSessionServiceImpl implements CardsAuthSessionService {
         cardAuthRequest.setCode(code);
         HttpEntity<CardAuthRequest> entity = new HttpEntity<>(cardAuthRequest);
 
-        CardAuthResponse cardAuthResponse = restTemplate.postForObject(authCardServiceUrl, entity, CardAuthResponse.class);
+        ResponseEntity<CardAuthResponse> responseEntity = restTemplate.postForEntity(authCardServiceUrl, entity, CardAuthResponse.class);
+        CardAuthResponse cardAuthResponse = responseEntity.getBody();
         validatedCard.setAmount(cardAuthResponse.getAmount());
         validatedCard.setAllowedActions(cardAuthResponse.getAllowedActions());
 
+        validatedCard.setCookies(responseEntity.getHeaders().get("Set-Cookie"));
+
+        logger.info("Successful authorization");
         return "Successful authorization";
     }
 }

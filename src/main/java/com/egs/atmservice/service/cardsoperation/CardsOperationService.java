@@ -1,6 +1,6 @@
-package com.egs.atmservice.service;
+package com.egs.atmservice.service.cardsoperation;
 
-public interface CardOperationService {
+public interface CardsOperationService {
 
     long getBalance();
 

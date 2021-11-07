@@ -1,7 +1,14 @@
-package com.egs.atmservice.service;
+package com.egs.atmservice.service.cardsoperation;
 
+import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -12,7 +19,9 @@ import com.egs.atmservice.integration.DepositRequest;
 import com.egs.atmservice.integration.WithdrawalRequest;
 
 @Service
-public class CardsOperationServiceImpl implements CardOperationService {
+public class CardsOperationServiceImpl implements CardsOperationService {
+
+    private final static Logger logger = LoggerFactory.getLogger(CardsOperationServiceImpl.class);
 
     @Value("${check.balance.operation.code}")
     private String checkBalanceOperationCode;
@@ -43,7 +52,10 @@ public class CardsOperationServiceImpl implements CardOperationService {
         validateIfOperationIsAllowed(checkBalanceOperationCode);
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(checkBalanceServiceUrl)
                 .queryParam("cardNumber", validatedCard.getCardNumber());
-        return restTemplate.getForObject(builder.toUriString(), Long.class);
+
+        HttpEntity<String> entity = new HttpEntity<>(getHttpHeaders());
+
+        return restTemplate.exchange(builder.toUriString(), HttpMethod.GET, entity, Long.class).getBody();
     }
 
     @Override
@@ -54,7 +66,10 @@ public class CardsOperationServiceImpl implements CardOperationService {
         depositRequest.setAmount(amount);
         depositRequest.setCardNumber(validatedCard.getCardNumber());
 
-        String message = restTemplate.postForObject(depositServiceUrl, depositRequest, String.class);
+        HttpEntity<DepositRequest> httpEntity = new HttpEntity<>(depositRequest, getHttpHeaders());
+
+        String message = restTemplate.postForObject(depositServiceUrl, httpEntity, String.class);
+        logger.info("Deposit result: " + message);
     }
 
     @Override
@@ -65,12 +80,15 @@ public class CardsOperationServiceImpl implements CardOperationService {
         withdrawalRequest.setAmount(amount);
         withdrawalRequest.setCardNumber(validatedCard.getCardNumber());
 
-        String message = restTemplate.postForObject(withdrawalServiceUrl, withdrawalRequest, String.class);
+        HttpEntity<WithdrawalRequest> httpEntity = new HttpEntity<>(withdrawalRequest, getHttpHeaders());
+
+        String message = restTemplate.postForObject(withdrawalServiceUrl, httpEntity, String.class);
+        logger.info("Withdrawal result: " + message);
     }
 
     private void validateIfOperationIsAllowed(String operationCode) {
         if (validatedCard.getCardNumber() == null) {
-            throw new ATMException("Card is not validated");
+            throw new ATMException("Card is not identified");
         }
         if (validatedCard.getAllowedActions() == null) {
             throw new ATMException("Card is not authorized");
@@ -78,5 +96,11 @@ public class CardsOperationServiceImpl implements CardOperationService {
         if (!validatedCard.getAllowedActions().contains(operationCode)) {
             throw new ATMException("Operation is not allowed: " + operationCode);
         }
+    }
+
+    private HttpHeaders getHttpHeaders() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Cookie", validatedCard.getCookies().stream().collect(Collectors.joining(";")));
+        return headers;
     }
 }

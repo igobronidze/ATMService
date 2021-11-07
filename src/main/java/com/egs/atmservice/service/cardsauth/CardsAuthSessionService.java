@@ -1,4 +1,4 @@
-package com.egs.atmservice.service;
+package com.egs.atmservice.service.cardsauth;
 
 import com.egs.atmservice.controller.model.IdentifyCardResponse;
 
